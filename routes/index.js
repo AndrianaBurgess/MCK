@@ -11,8 +11,8 @@ router.get('/test', function(req, res, next){
   res.render('test.html');
 });
 
-router.get('/xss', function(req, res, next){
-  res.render('xss.html')
+router.get('/list', function(req, res, next){
+  res.render('list.html')
 });
 
 module.exports = router;
