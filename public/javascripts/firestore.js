@@ -22,7 +22,7 @@ function addProduct(product, callback){
     db.collection(USERS_COLLECTION).doc(user.email)
     .collection(PRODUCTS_COLLECTION).doc(product['id'])
     .set(product).then(function() {
-        //callback(product);
+        callback(product);
         console.log("Document successfully written!");
     })
     .catch(function(error) {
@@ -33,7 +33,13 @@ function addProduct(product, callback){
 function getAllProducts(callback){
     var user = firebase.auth().currentUser;
     db.collection(USERS_COLLECTION).doc(user.email)
-    .collection(PRODUCTS_COLLECTION).get().then(callback);
+    .collection(PRODUCTS_COLLECTION).get().then(function(snapshot){
+        var productList = []
+        snapshot.forEach(function(doc){
+            doc.push(doc.data());
+        });
+        callback(productList);
+    });
 }
 
 function removeProduct(productId, callback){
@@ -41,7 +47,7 @@ function removeProduct(productId, callback){
     db.collection(USERS_COLLECTION).doc(user.email)
     .collection(PRODUCTS_COLLECTION).doc(productId)
     .delete().then(function() {
-        //callback(productId);
+        callback(productId);
         console.log("Document successfully deleted!");
     }).catch(function(error) {
         console.error("Error removing document: ", error);
@@ -56,7 +62,7 @@ function modifyProduct(newValues, callback){
 
     productDoc.update(newValues)
     .then(function() {
-        //callback(newValues);
+        callback(newValues);
         console.log("Document successfully updated!");
     })
     .catch(function(error) {
