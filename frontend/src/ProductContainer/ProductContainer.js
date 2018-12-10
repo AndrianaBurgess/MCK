@@ -34,7 +34,9 @@ class ProductContainer extends React.Component {
         var productList = []
 
         snapshot.forEach(doc => {
+          console.log(doc);
           var product = doc.data();
+          product.id = doc.id;
          // this.setProductImageSrc(product);
           productList.push(product);
         });
@@ -74,15 +76,33 @@ class ProductContainer extends React.Component {
       return (
       <ul> 
       {
-        this.state.products.map(p => {
+        this.state.products.map(product => {
           return (
           <li>
-            <Product product={p} key={p.id} /> 
+            <Product product={product} key={product.id} /> 
+            <button>Modify</button>
+            <button onClick={(e) => this.removeProduct(e, product.id)}>Delete</button>
           </li> ); 
           })
       }
       </ul>
       );
+    }
+
+    removeProduct = (e, productId) => {
+      console.log(productId);
+      e.preventDefault();
+      this.usersRef.doc(this.userEmail)
+      .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
+        console.log("Document successfully deleted!");
+        var updatedArray = Array.from(this.state.products);
+        console.log(updatedArray)
+        updatedArray = updatedArray.filter(product => product.id !== productId)
+        console.log(updatedArray);
+        this.setState({products: updatedArray});
+      }).catch(function(error) {
+        console.error("Error removing document: ", error);
+      });
     }
 
     /**
@@ -109,7 +129,6 @@ class ProductContainer extends React.Component {
           this.getProductListUi()
         }
         </div>
-        
       );
     }
   }
