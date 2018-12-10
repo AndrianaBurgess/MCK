@@ -1,6 +1,7 @@
 import React from 'react';
 import Product from '../Product/Product';
 import firebase from 'firebase';
+import FadeLoader from 'react-spinners/FadeLoader';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
 
@@ -11,7 +12,7 @@ class ProductContainer extends React.Component {
         super(props);
 
         this.state = {
-           products: []
+           products: null
         }
         
         this.firestore = firebase.firestore();
@@ -92,17 +93,32 @@ class ProductContainer extends React.Component {
     removeProduct = (e, productId) => {
       console.log(productId);
       e.preventDefault();
+
       this.usersRef.doc(this.userEmail)
       .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
+
         console.log("Document successfully deleted!");
         var updatedArray = Array.from(this.state.products);
-        console.log(updatedArray)
         updatedArray = updatedArray.filter(product => product.id !== productId)
-        console.log(updatedArray);
         this.setState({products: updatedArray});
+
       }).catch(function(error) {
+
         console.error("Error removing document: ", error);
+
       });
+    }
+
+    renderLoadAnimation = () => {
+      return (
+      <FadeLoader
+        className={'loader'}
+        sizeUnit={"px"}
+        size={150}
+        color={'#123abc'}
+        loading={true} 
+        />
+      )
     }
 
     /**
@@ -120,16 +136,20 @@ class ProductContainer extends React.Component {
       return this.state.products.length === 0;
     }
 
-    render() {
-      return (
-        <div>
-        {
-          this.userHasNoProducts() ?
-          this.getEmptyProductsUi() :
-          this.getProductListUi()
-        }
-        </div>
-      );
+    productsNotLoaded = () => {
+      return this.state.products === null;
     }
+
+    renderProducts = () => {
+      if (this.productsNotLoaded()){
+        return this.renderLoadAnimation();
+      }
+      return this.userHasNoProducts() ?
+      this.getEmptyProductsUi() :
+      this.getProductListUi();
+    }
+
+    render() {return this.renderProducts(); }
+
   }
   export default ProductContainer;
