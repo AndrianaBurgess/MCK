@@ -12,7 +12,9 @@ class ProductContainer extends React.Component {
         super(props);
 
         this.state = {
-           products: null
+           products: null,
+           isAddingProduct : false,
+           isModifyingProduct : false
         }
         
         this.firestore = firebase.firestore();
@@ -69,7 +71,35 @@ class ProductContainer extends React.Component {
       });
     }
 
-    /**
+    removeProduct = (e, productId) => {
+      console.log(productId);
+      e.preventDefault();
+
+      this.usersRef.doc(this.userEmail)
+      .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
+
+        console.log("Document successfully deleted!");
+        var updatedArray = Array.from(this.state.products);
+        updatedArray = updatedArray.filter(product => product.id !== productId)
+        this.setState({products: updatedArray});
+
+      }).catch(function(error) {
+
+        console.error("Error removing document: ", error);
+
+      });
+    }
+
+    renderProducts = () => {
+      if (this.productsNotLoaded()){
+        return this.renderLoadAnimation();
+      }
+      return this.userHasNoProducts() ?
+      this.getEmptyProductsUi() :
+      this.getProductListUi();
+    }
+
+     /**
      * Returns html displaying a list 
      * of products and thier information
      */
@@ -90,23 +120,17 @@ class ProductContainer extends React.Component {
       );
     }
 
-    removeProduct = (e, productId) => {
-      console.log(productId);
-      e.preventDefault();
-
-      this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
-
-        console.log("Document successfully deleted!");
-        var updatedArray = Array.from(this.state.products);
-        updatedArray = updatedArray.filter(product => product.id !== productId)
-        this.setState({products: updatedArray});
-
-      }).catch(function(error) {
-
-        console.error("Error removing document: ", error);
-
-      });
+     /**
+     * Returns html showing that the user
+     * has no products currently in firestore
+     */
+    getEmptyProductsUi = () => {
+      return (
+      <div>
+       <p>No proudcts to show</p>
+       <button onClick= { () => this.setState( {isAddingProduct : true} ) }> Click here to add some</button>
+      </div>
+      )
     }
 
     renderLoadAnimation = () => {
@@ -122,14 +146,6 @@ class ProductContainer extends React.Component {
     }
 
     /**
-     * Returns html showing that the user
-     * has no products currently in firestore
-     */
-    getEmptyProductsUi = () => {
-      return <div>No products to display</div>
-    }
-
-    /**
      * Determines if user has products
      */
     userHasNoProducts = () => {
@@ -140,16 +156,45 @@ class ProductContainer extends React.Component {
       return this.state.products === null;
     }
 
-    renderProducts = () => {
-      if (this.productsNotLoaded()){
-        return this.renderLoadAnimation();
-      }
-      return this.userHasNoProducts() ?
-      this.getEmptyProductsUi() :
-      this.getProductListUi();
+    renderAddProduct = () => {
+      return (
+      <div>
+        <input type='text'></input>
+        <input type='text'></input>
+        <input type='text'></input>
+        <input type='text'></input>
+        <button onClick = { () => this.setState({isAddingProduct : false}) }> Submit </button>
+      </div>
+      );
     }
 
-    render() {return this.renderProducts(); }
+    addProduct(product) {
+      this.usersRef.doc(this.userEmail)
+      .collection(PRODUCTS_COLLECTION).add(product)
+      .then( () => {
+        this.setState({ isAddingProduct : false });
+      })
+      .catch( error => {
+        console.log(error);
+      });
+    }
+
+    renderModifyProducts = () => {
+
+    }
+
+    render() { 
+      
+      if (this.isAddingProduct){
+        return this.renderAddProduct();
+      }
+
+      if (this.isModifyingProduct){
+        return this.renderModifyProducts();
+      }
+
+      return this.renderProducts();
+    }
 
   }
   export default ProductContainer;
