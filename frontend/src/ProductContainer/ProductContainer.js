@@ -75,7 +75,11 @@ class ProductContainer extends React.Component {
       <ul> 
       {
         this.state.products.map(p => {
-          return ( <li> <Product product={p} key={p.id} /> </li> ); } )
+          return (
+          <li>
+            <Product product={p} key={p.id} /> 
+          </li> ); 
+          })
       }
       </ul>
       );
