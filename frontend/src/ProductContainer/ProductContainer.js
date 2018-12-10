@@ -1,7 +1,7 @@
 import React from 'react';
 import Product from '../Product/Product';
 import firebase from 'firebase';
-
+import AddButton from '../AddButton/AddButton';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
 
@@ -36,7 +36,7 @@ class ProductContainer extends React.Component {
         this.setState({
           products : productList
         });
-        
+
         console.log('PRODUCT LIST', productList);
       })
       .catch(err => {
@@ -48,9 +48,8 @@ class ProductContainer extends React.Component {
       return (
       <ul> 
       {
-        this.state.products.map(p => (
-          <li><Product id={p.id} name = {p.name} type = {p.type} brand={p.brand} key={p.id} rating={p.rating}/></li> ) 
-          )
+        this.state.products.map(p => {
+          return ( <li> <Product product={p} key={p.id}/> </li> ); } )
       }
       </ul>
       );
@@ -73,6 +72,4 @@ class ProductContainer extends React.Component {
       );
     }
   }
-
-
   export default ProductContainer;

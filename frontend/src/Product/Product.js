@@ -5,10 +5,7 @@ class Product extends Component {
     constructor(props) {
         super(props);
         this.state = {
-           id: props.id,
-           name: props.name,
-           brand: props.brand,
-           type: props.type
+          product : props.product
         }
      }
 
@@ -16,9 +13,9 @@ class Product extends Component {
     return (
       <div>
         {/* <img src=""/> */}
-        <h5> {this.state.brand} </h5>
-        <h5> {this.state.name} </h5>
-        <h5> {this.state.rating}/10 </h5>
+        <h5> {this.state.product.brand} </h5>
+        <h5> {this.state.product.name} </h5>
+        <h5> {this.state.product.rating}/10 </h5>
         <button>Modify</button>
         <button>Delete</button>
       </div>
