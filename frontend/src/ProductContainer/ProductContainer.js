@@ -1,7 +1,6 @@
 import React from 'react';
 import Product from '../Product/Product';
 import firebase from 'firebase';
-import AddButton from '../AddButton/AddButton';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
 
@@ -14,12 +13,17 @@ class ProductContainer extends React.Component {
         this.state = {
            products: []
         }
-        console.log(props);
-        this.userEmail = this.props.currUser.email;
+        
         this.firestore = firebase.firestore();
+        this.storage = firebase.storage();
         this.usersRef = this.firestore.collection(USERS_COLLECTION);
+        this.userEmail = this.props.currUser.email;
      }
-  
+
+    /***
+     * Retreives all the products added by the 
+     * current user and stores them in an array.
+     */
     componentDidMount() {
       
       var productsRef = this.usersRef.doc(this.userEmail)
@@ -30,7 +34,9 @@ class ProductContainer extends React.Component {
         var productList = []
 
         snapshot.forEach(doc => {
-          productList.push(doc.data());
+          var product = doc.data();
+         // this.setProductImageSrc(product);
+          productList.push(product);
         });
 
         this.setState({
@@ -44,26 +50,57 @@ class ProductContainer extends React.Component {
       });
     }
 
+    /**
+     * Retreives image src link from firebase 
+     * storage and sets the products imageSrc
+     * field to it.
+     */
+    setProductImageSrc = (product) => {
+      var imagePath = product.imagePath;
+      var storageRef = this.storage.ref();
+      var imageRef = storageRef.child(imagePath);
+      imageRef.getDownloadURL().then(function(url) {
+        product.imageSrc = url;
+      }).catch(function(error) {
+        console.log(error);
+      });
+    }
+
+    /**
+     * Returns html displaying a list 
+     * of products and thier information
+     */
     getProductListUi = () => {
       return (
       <ul> 
       {
         this.state.products.map(p => {
-          return ( <li> <Product product={p} key={p.id}/> </li> ); } )
+          return ( <li> <Product product={p} key={p.id} /> </li> ); } )
       }
       </ul>
       );
     }
 
+    /**
+     * Returns html showing that the user
+     * has no products currently in firestore
+     */
     getEmptyProductsUi = () => {
-      return <div>No products</div>
+      return <div>No products to display</div>
+    }
+
+    /**
+     * Determines if user has products
+     */
+    userHasNoProducts = () => {
+      return this.state.products.length === 0;
     }
 
     render() {
       return (
         <div>
         {
-          this.state.products.length == 0 ?
+          this.userHasNoProducts() ?
           this.getEmptyProductsUi() :
           this.getProductListUi()
         }
