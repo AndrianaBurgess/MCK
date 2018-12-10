@@ -15,10 +15,12 @@ class Product extends Component {
   render() {
     return (
       <div>
-        <img src=""/>
-        <h1> {this.state.name} </h1>
-        <button></button>
-        <button></button>
+        {/* <img src=""/> */}
+        <h5> {this.state.brand} </h5>
+        <h5> {this.state.name} </h5>
+        <h5> {this.state.rating}/10 </h5>
+        <button>Modify</button>
+        <button>Delete</button>
       </div>
     );
   }
