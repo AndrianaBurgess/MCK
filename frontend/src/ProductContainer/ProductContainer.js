@@ -13,7 +13,7 @@ class ProductContainer extends React.Component {
 
         this.state = {
            products: null,
-           isAddingProduct : false,
+           isAddingProduct : true,
            isModifyingProduct : false
         }
         
@@ -113,11 +113,26 @@ class ProductContainer extends React.Component {
             <Product product={product} key={product.id} /> 
             <button>Modify</button>
             <button onClick={(e) => this.removeProduct(e, product.id)}>Delete</button>
-          </li> ); 
+          </li>
+           ); 
           })
       }
       </ul>
       );
+    }
+
+    setIsAdding = (e) => {
+      e.preventDefault();
+      this.setState({
+        isAddingProduct : true
+      });
+    }
+
+    setIsModifying = (e) => {
+      e.preventDefault();
+      this.setState({
+        isModifyingProduct : true
+      });
     }
 
      /**
@@ -127,8 +142,8 @@ class ProductContainer extends React.Component {
     getEmptyProductsUi = () => {
       return (
       <div>
-       <p>No proudcts to show</p>
-       <button onClick= { () => this.setState( {isAddingProduct : true} ) }> Click here to add some</button>
+       <p>No proudcts to show nigga</p>
+       <button onClick= { (e) => this.setIsAdding(e) }> Click here to add some </button>
       </div>
       )
     }
@@ -184,8 +199,9 @@ class ProductContainer extends React.Component {
     }
 
     render() { 
+      console.log(this.state.isAddingProduct);
       
-      if (this.isAddingProduct){
+      if (this.isAddingProduct === true){
         return this.renderAddProduct();
       }
 
