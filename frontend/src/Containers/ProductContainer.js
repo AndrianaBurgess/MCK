@@ -20,8 +20,8 @@ class ProductContainer extends React.Component {
         
         this.firestore = firebase.firestore();
         this.storage = firebase.storage();
-        this.usersRef = this.firestore.collection(USERS_COLLECTION);
-        this.userEmail = this.props.currUser.email;
+        this.productsRef = this.firestore.collection(USERS_COLLECTION)
+        .doc(this.props.currUser.email).collection(PRODUCTS_COLLECTION);
      }
 
     /***
@@ -29,11 +29,8 @@ class ProductContainer extends React.Component {
      * current user and stores them in an array.
      */
     componentDidMount() {
-      
-      var productsRef = this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION);
 
-      productsRef.get().then(snapshot => {
+      this.productsRef.get().then(snapshot => {
 
         var productList = []
 
@@ -41,7 +38,6 @@ class ProductContainer extends React.Component {
           console.log(doc);
           var product = doc.data();
           product.id = doc.id;
-         // this.setProductImageSrc(product);
           productList.push(product);
         });
 
@@ -62,6 +58,7 @@ class ProductContainer extends React.Component {
      * field to it.
      */
     setProductImageSrc = (product) => {
+      
       var imagePath = product.imagePath;
       var storageRef = this.storage.ref();
       var imageRef = storageRef.child(imagePath);
@@ -72,24 +69,7 @@ class ProductContainer extends React.Component {
       });
     }
 
-    removeProduct = (e, productId) => {
-      console.log(productId);
-      e.preventDefault();
-
-      this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
-
-        console.log("Document successfully deleted!");
-        var updatedArray = Array.from(this.state.products);
-        updatedArray = updatedArray.filter(product => product.id !== productId)
-        this.setState({products: updatedArray});
-
-      }).catch(function(error) {
-
-        console.error("Error removing document: ", error);
-
-      });
-    }
+  
 
     renderProducts = () => {
       if (this.productsNotLoaded()){
@@ -175,37 +155,57 @@ class ProductContainer extends React.Component {
       return this.state.products === null;
     }
 
+    renderModifyProducts = () => {
+
+    }
+
+
     renderAddProduct = () => {
       console.log("heeeeey");
       return (
         
       <div>
-        <NewProductUI/>
-        
+        <NewProductUI email={this.props.currUser.email}
+        storageRef={this.storage.ref()}
+        productsRef={this.productsRef} />
       </div>
       );
     }
 
-    addProduct(product) {
-      this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION).add(product)
-      .then( () => {
-        this.setState({ isAddingProduct : false });
+   
+
+    modifyProduct = (product) => {
+      this.productsRef.update(product).then( () => {
+
       })
-      .catch( error => {
-        console.log(error);
+      .catch( error => {console.log(error); } );
+    }
+
+    removeProduct = (e, productId) => {
+      console.log(productId);
+      e.preventDefault();
+
+      this.usersRef.doc(this.userEmail)
+      .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
+
+        console.log("Document successfully deleted!");
+        var updatedArray = Array.from(this.state.products);
+        updatedArray = updatedArray.filter(product => product.id !== productId)
+        this.setState({products: updatedArray});
+
+      }).catch(function(error) {
+
+        console.error("Error removing document: ", error);
+
       });
     }
 
-    renderModifyProducts = () => {
-
-    }
 
     render() { 
       console.log(this.state.isAddingProduct);
-      
+
       if (this.state.isAddingProduct){
-        console.log("wth sis");
+      
         return this.renderAddProduct();
       }
 
