@@ -1,5 +1,6 @@
 import React from 'react';
-import Product from '../Product/Product';
+import Product from '../Components/Product';
+import NewProductUI from '../Components/NewProductUI';
 import firebase from 'firebase';
 import FadeLoader from 'react-spinners/FadeLoader';
 const USERS_COLLECTION = 'users';
@@ -13,7 +14,7 @@ class ProductContainer extends React.Component {
 
         this.state = {
            products: null,
-           isAddingProduct : true,
+           isAddingProduct : false,
            isModifyingProduct : false
         }
         
@@ -105,6 +106,8 @@ class ProductContainer extends React.Component {
      */
     getProductListUi = () => {
       return (
+      <div>
+      <button onClick= { (e) => this.setIsAdding(e) }> Add Product </button>
       <ul> 
       {
         this.state.products.map(product => {
@@ -118,6 +121,7 @@ class ProductContainer extends React.Component {
           })
       }
       </ul>
+      </div>
       );
     }
 
@@ -142,8 +146,8 @@ class ProductContainer extends React.Component {
     getEmptyProductsUi = () => {
       return (
       <div>
-       <p>No proudcts to show nigga</p>
-       <button onClick= { (e) => this.setIsAdding(e) }> Click here to add some </button>
+       <p>No proudcts to show</p>
+       <button onClick= { (e) => this.setIsAdding(e) }> Add Product </button>
       </div>
       )
     }
@@ -172,13 +176,12 @@ class ProductContainer extends React.Component {
     }
 
     renderAddProduct = () => {
+      console.log("heeeeey");
       return (
+        
       <div>
-        <input type='text'></input>
-        <input type='text'></input>
-        <input type='text'></input>
-        <input type='text'></input>
-        <button onClick = { () => this.setState({isAddingProduct : false}) }> Submit </button>
+        <NewProductUI/>
+        
       </div>
       );
     }
@@ -201,11 +204,12 @@ class ProductContainer extends React.Component {
     render() { 
       console.log(this.state.isAddingProduct);
       
-      if (this.isAddingProduct === true){
+      if (this.state.isAddingProduct){
+        console.log("wth sis");
         return this.renderAddProduct();
       }
 
-      if (this.isModifyingProduct){
+      if (this.state.isModifyingProduct){
         return this.renderModifyProducts();
       }
 

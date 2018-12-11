@@ -54,8 +54,6 @@ class Product extends Component {
           <h5> {this.state.product.rating}/10 </h5>
           <button>Modify</button>
           <button>Delete</button>
-          <button>Choose file</button>
-          <button>Upload File</button>
         </div>
       );
     }

@@ -19,7 +19,7 @@ class AddButton extends Component {
 
     render() {
         return (
-            <button onclick={this.uploadProduct}> Upload </button>
+            <button onClick={this.uploadProduct}> Save </button>
         );
       }
 }

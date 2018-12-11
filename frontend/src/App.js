@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {FIREBASE_CONFIG} from './config/firebaseconfig';
 import firebase from 'firebase';
-import ProductContainer from './ProductContainer/ProductContainer';
+import ProductContainer from './Containers/ProductContainer';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 
 class App extends Component {
