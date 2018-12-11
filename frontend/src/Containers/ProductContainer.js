@@ -5,6 +5,8 @@ import firebase from 'firebase';
 import FadeLoader from 'react-spinners/FadeLoader';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
+const LAST_ADDED = 'lastAdded'
+const META = 'meta';
 
 
 class ProductContainer extends React.Component {
@@ -20,16 +22,66 @@ class ProductContainer extends React.Component {
         
         this.firestore = firebase.firestore();
         this.storage = firebase.storage();
+
         this.productsRef = this.firestore.collection(USERS_COLLECTION)
         .doc(this.props.currUser.email).collection(PRODUCTS_COLLECTION);
+
+        this.lastAddedRef = this.firestore.collection(USERS_COLLECTION)
+        .doc(this.props.currUser.email).collection(META).doc(LAST_ADDED);
      }
 
-    /***
-     * Retreives all the products added by the 
-     * current user and stores them in an array.
-     */
-    componentDidMount() {
+     createLastAdded = () => {
+      this.lastAddedRef.set({
+        productId : 'none'
+      })
+      .then( () => {
 
+      }).catch(error => {
+
+      });
+     }
+
+     checkIfLastAddedExist = (callback) => {
+       this.lastAddedRef.get()
+       .then(doc => {
+         if (!doc.exists){
+           this.createLastAdded();
+         }
+       })
+       .catch(error => {
+         console.log(error);
+       });
+     }
+
+     listenForNewProducts = () => {
+       this.lastAddedRef.onSnapshot(doc => {
+         var lastAdded = doc.data();
+         console.log(lastAdded);
+         if (lastAdded.productId == 'none'){
+           return;
+         }
+         this.productsRef.doc(lastAdded.productId).get().then(doc => {
+          if (doc.exists) {
+            var product = doc.data();
+            this.renderNewProduct(product);
+          } else {
+              console.log("No such document!");
+            }
+        }).catch(function(error) {
+            console.log("Error getting document:", error);
+        });
+       });
+     }
+
+     renderNewProduct = (product) => {
+       var updated = Array.from(this.state.products);
+       updated.push(product);
+       this.setState({
+         products : updated
+       })
+     }
+
+     loadProducts = () => {
       this.productsRef.get().then(snapshot => {
 
         var productList = []
@@ -50,6 +102,15 @@ class ProductContainer extends React.Component {
       .catch(err => {
         console.log('Error getting documents', err);
       });
+     }
+    /***
+     * Retreives all the products added by the 
+     * current user and stores them in an array.
+     */
+    componentDidMount() {
+      this.checkIfLastAddedExist(this.createLastAdded);
+      this.loadProducts();
+      this.listenForNewProducts();
     }
 
     /**
@@ -112,6 +173,12 @@ class ProductContainer extends React.Component {
       });
     }
 
+    setNotAdding = () => {
+      this.setState({
+        isAddingProduct : false
+      });
+    }
+
     setIsModifying = (e) => {
       e.preventDefault();
       this.setState({
@@ -167,7 +234,9 @@ class ProductContainer extends React.Component {
       <div>
         <NewProductUI email={this.props.currUser.email}
         storageRef={this.storage.ref()}
-        productsRef={this.productsRef} />
+        productsRef={this.productsRef}
+        finished={this.setNotAdding} 
+        lastAddedRef={this.lastAddedRef}/>
       </div>
       );
     }
@@ -185,9 +254,8 @@ class ProductContainer extends React.Component {
       console.log(productId);
       e.preventDefault();
 
-      this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
-
+      this.productsRef.doc(productId).delete()
+      .then( () => {
         console.log("Document successfully deleted!");
         var updatedArray = Array.from(this.state.products);
         updatedArray = updatedArray.filter(product => product.id !== productId)
@@ -202,7 +270,6 @@ class ProductContainer extends React.Component {
 
 
     render() { 
-      console.log(this.state.isAddingProduct);
 
       if (this.state.isAddingProduct){
       

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import firebase from 'firebase';
-import AddButton from './AddButton';
 
 class NewProductUI extends Component {
 
@@ -9,36 +8,55 @@ class NewProductUI extends Component {
         this.firestore = firebase.firestore();
     }
 
-    uploadImage = () => {
-      var file = document.getElementById('image').files[0];;
-      console.log(file);
-      var imageRef = this.props.storageRef.child(this.props.email + '/' + file.name);
+    uploadImage = (productId) => {
+      var file = document.getElementById('image').files[0];
+      var imageRef = this.props.storageRef.child(this.props.email + '/' + productId);
       imageRef.put(file).then( snapshot => {
-          console.log(snapshot);
+          console.log('image uploaded');
+          this.updatedLastAdded(productId);
+          this.props.finished();
       });
     }
 
-    addProduct = (product) => {
-      this.props.productsRef.add(product).then( () => {
-        this.setState({ isAddingProduct : false });
-      })
-      .catch( error => { console.log(error); } );
+    updatedLastAdded = (id) => {
+        this.props.lastAddedRef.update({
+            productId : id
+        })
+        .then( () => {
+            console.log('updated last added');
+        })
+    }
+
+    addProduct = (e) => {
+        e.preventDefault();
+        this.props.productsRef.add({
+            name : document.getElementById('name').value,
+            brand : document.getElementById('brand').value,
+            rating : document.getElementById('rating').value,
+            type : document.getElementById('type').value
+        }).then( doc  => {
+            this.uploadImage(doc.id);
+        })
+        .catch( error => { 
+            console.log(error);
+         });
     }
 
     render() {
         return (
-            <div>
-               Name: <input></input>
-               Brand: <input></input>
-               Rating: <input></input>
-               Type: <select>
-               <option value="gel">Volvo</option>
-               <option value="conditioner">Saab</option>
-               <option value="cream">Opel</option>
-               <option value="shampoo">Audi</option>
-             </select>
-                <AddButton/>
-            </div>
+            <form>
+                Name: <input type="text" id="name"></input> <br/>
+                Brand: <input type="text" id="brand"></input> <br/>
+                Rating: <input type="text" id="rating"></input> <br/>
+                Type: <select id="type">
+                    <option value="gel">Gel</option>
+                    <option value="conditioner">Conditioner</option>
+                    <option value="cream">Cream</option>
+                    <option value="shampoo">Shampoo</option>
+                </select> <br/>
+                <input type="file" name="fileToUpload" id="image"/> <br/>
+                <button onClick={ (e) => this.addProduct(e) }> Save </button>
+            </form>
         );
       }
 }
