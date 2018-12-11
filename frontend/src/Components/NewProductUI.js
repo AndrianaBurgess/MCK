@@ -45,9 +45,9 @@ class NewProductUI extends Component {
     render() {
         return (
             <form>
-                Name: <input type="text" id="name"></input> <br/>
-                Brand: <input type="text" id="brand"></input> <br/>
-                Rating: <input type="text" id="rating"></input> <br/>
+                Name: <input type="text" id="name" required/> <br/>
+                Brand: <input type="text" id="brand" required></input> <br/>
+                Rating: <input type="text" id="rating" required></input> <br/>
                 Type: <select id="type">
                     <option value="gel">Gel</option>
                     <option value="conditioner">Conditioner</option>
