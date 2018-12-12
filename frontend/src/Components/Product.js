@@ -1,37 +1,44 @@
 import React, { Component } from 'react';
-import firebase from 'firebase';
+import Card from 'react-bootstrap/lib/Card';
+import Button from 'react-bootstrap/lib/Button';
+import * as fb from '../firebasefunctions';
 
 class Product extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-          product : props.product
+          imageUrl : this.props.product.imageUrl
         }
-        this.storage = firebase.storage();
      }
 
-     
-   
-     /**
-      * Returns what button should display
-      * based on if user has uploaded picture
-      * before.
-      */
-     getButtonTextState = () => {
-       // TODO
+     setProductImage = url => {
+      this.setState({
+        imageUrl : url
+      });
      }
 
-
+     componentDidMount(){
+       var id = this.props.product.id;
+       var email = this.props.email;
+       fb.getProductImageUrl(id, email)
+       .then(this.setProductImage);
+     }
 
     render() {
       return (
         <div>
-          {/* <img src=""/> */}
-          <h5> {this.state.product.brand} </h5>
-          <h5> {this.state.product.name} </h5>
-          <h5> {this.state.product.rating}/10 </h5>
-        </div>
+        <Card style={{ width: '15rem' }}>
+        <Card.Header>{this.props.product.name}</Card.Header>
+          <Card.Img variant="top" src={this.state.imageUrl} />
+          <Card.Body>
+            <Card.Title>{this.props.product.brand}</Card.Title>
+            <Card.Subtitle className="mb-2 text-muted">{this.props.product.type}</Card.Subtitle>
+            <Card.Text>  {this.props.product.rating}</Card.Text>
+          </Card.Body>
+        </Card>
+      </div>
+      
       );
     }
 }
