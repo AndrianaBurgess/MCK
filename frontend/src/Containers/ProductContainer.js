@@ -3,6 +3,8 @@ import Product from '../Components/Product';
 import NewProductUI from '../Components/NewProductUI';
 import firebase from 'firebase';
 import FadeLoader from 'react-spinners/FadeLoader';
+import Button from 'react-bootstrap/lib/Button';
+import CardGroup from 'react-bootstrap/lib/CardGroup';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
 const LAST_ADDED = 'lastAdded'
@@ -154,20 +156,20 @@ class ProductContainer extends React.Component {
     getProductListUi = () => {
       return (
       <div>
-      <button onClick= { (e) => this.setIsAdding(e) }> Add Product </button>
-      <ul> 
+      <Button onClick= { (e) => this.setIsAdding(e) }> Add Product </Button>
+       <CardGroup>
       {
         this.state.products.map(product => {
           return (
-          <li>
+            <div>
             <Product product={product} key={product.id} /> 
-            <button>Modify</button>
-            <button onClick={(e) => this.removeProduct(e, product.id)}>Delete</button>
-          </li>
+            <Button>Modify</Button>
+            <Button onClick={(e) => this.removeProduct(e, product.id)}>Delete</Button>
+            </div>
            ); 
           })
       }
-      </ul>
+      </CardGroup>
       </div>
       );
     }
@@ -200,7 +202,7 @@ class ProductContainer extends React.Component {
       return (
       <div>
        <p>No proudcts to show</p>
-       <button onClick= { (e) => this.setIsAdding(e) }> Add Product </button>
+       <Button onClick= { (e) => this.setIsAdding(e) }> Add Product </Button>
       </div>
       )
     }
