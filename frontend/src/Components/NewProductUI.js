@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import firebase from 'firebase';
-import AddButton from './AddButton';
+import Button from 'react-bootstrap/lib/Button';
 
 class NewProductUI extends Component {
 
