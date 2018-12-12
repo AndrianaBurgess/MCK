@@ -3,10 +3,12 @@ import Product from '../Components/Product';
 import NewProductUI from '../Components/NewProductUI';
 import firebase from 'firebase';
 import FadeLoader from 'react-spinners/FadeLoader';
+import * as fb from '../firebasefunctions';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
 const LAST_ADDED = 'lastAdded'
 const META = 'meta';
+
 
 
 class ProductContainer extends React.Component {
@@ -22,12 +24,14 @@ class ProductContainer extends React.Component {
         
         this.firestore = firebase.firestore();
         this.storage = firebase.storage();
+        this.email = this.props.currUser.email;
+        
 
         this.productsRef = this.firestore.collection(USERS_COLLECTION)
-        .doc(this.props.currUser.email).collection(PRODUCTS_COLLECTION);
+        .doc(this.email).collection(PRODUCTS_COLLECTION);
 
         this.lastAddedRef = this.firestore.collection(USERS_COLLECTION)
-        .doc(this.props.currUser.email).collection(META).doc(LAST_ADDED);
+        .doc(this.email).collection(META).doc(LAST_ADDED);
      }
 
      createLastAdded = () => {
@@ -35,9 +39,9 @@ class ProductContainer extends React.Component {
         productId : 'none'
       })
       .then( () => {
-
+        console.log('last added created!');
       }).catch(error => {
-
+        console.log(error);
       });
      }
 
@@ -46,6 +50,9 @@ class ProductContainer extends React.Component {
        .then(doc => {
          if (!doc.exists){
            this.createLastAdded();
+         }
+         else{
+           console.log('last added already created');
          }
        })
        .catch(error => {
@@ -57,7 +64,7 @@ class ProductContainer extends React.Component {
        this.lastAddedRef.onSnapshot(doc => {
          var lastAdded = doc.data();
          console.log(lastAdded);
-         if (lastAdded.productId == 'none'){
+         if (lastAdded.productId === 'none'){
            return;
          }
          this.productsRef.doc(lastAdded.productId).get().then(doc => {
@@ -81,15 +88,28 @@ class ProductContainer extends React.Component {
        })
      }
 
-     loadProducts = () => {
+
+    /***
+     * Retreives all the products added by the 
+     * current user and stores them in an array.
+     */
+    componentDidMount() {
+      fb.test();
+      this.checkIfLastAddedExist(this.createLastAdded);
+      this.loadProducts();
+      this.listenForNewProducts();
+    }
+
+    loadProducts = () => {
       this.productsRef.get().then(snapshot => {
 
         var productList = []
 
         snapshot.forEach(doc => {
-          console.log(doc);
+ 
           var product = doc.data();
           product.id = doc.id;
+          this.setProductImage(product);
           productList.push(product);
         });
 
@@ -97,41 +117,29 @@ class ProductContainer extends React.Component {
           products : productList
         });
 
-        console.log('PRODUCT LIST', productList);
       })
       .catch(err => {
         console.log('Error getting documents', err);
       });
      }
-    /***
-     * Retreives all the products added by the 
-     * current user and stores them in an array.
-     */
-    componentDidMount() {
-      this.checkIfLastAddedExist(this.createLastAdded);
-      this.loadProducts();
-      this.listenForNewProducts();
-    }
 
-    /**
-     * Retreives image src link from firebase 
-     * storage and sets the products imageSrc
+     /**
+     * Retreives image url from firebase 
+     * storage and sets the products imageUrl
      * field to it.
      */
-    setProductImageSrc = (product) => {
-      
-      var imagePath = product.imagePath;
+    setProductImage = (product) => {
       var storageRef = this.storage.ref();
+      var imagePath = this.email + '/' + product.id;
       var imageRef = storageRef.child(imagePath);
-      imageRef.getDownloadURL().then(function(url) {
-        product.imageSrc = url;
+      imageRef.getDownloadURL().then(url => {
+        product.imageUrl = url;
+        console.log(product.imageUrl);
       }).catch(function(error) {
         console.log(error);
       });
     }
-
-  
-
+    
     renderProducts = () => {
       if (this.productsNotLoaded()){
         return this.renderLoadAnimation();
@@ -228,7 +236,6 @@ class ProductContainer extends React.Component {
 
 
     renderAddProduct = () => {
-      console.log("heeeeey");
       return (
         
       <div>
@@ -251,7 +258,6 @@ class ProductContainer extends React.Component {
     }
 
     removeProduct = (e, productId) => {
-      console.log(productId);
       e.preventDefault();
 
       this.productsRef.doc(productId).delete()
