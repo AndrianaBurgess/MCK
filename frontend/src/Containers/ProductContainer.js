@@ -3,7 +3,6 @@ import Product from '../Components/Product';
 import NewProductUI from '../Components/NewProductUI';
 import firebase from 'firebase';
 import FadeLoader from 'react-spinners/FadeLoader';
-import * as fb from '../firebasefunctions';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
 const LAST_ADDED = 'lastAdded'
@@ -94,7 +93,6 @@ class ProductContainer extends React.Component {
      * current user and stores them in an array.
      */
     componentDidMount() {
-      fb.test();
       this.checkIfLastAddedExist(this.createLastAdded);
       this.loadProducts();
       this.listenForNewProducts();
