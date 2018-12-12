@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import {FIREBASE_CONFIG} from './config/firebaseconfig';
 import firebase from 'firebase';
 import ProductContainer from './Containers/ProductContainer';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
@@ -8,11 +7,6 @@ class App extends Component {
 
   constructor(){
     super();
-
-  firebase.initializeApp(FIREBASE_CONFIG);
-  firebase.firestore().settings({
-    timestampsInSnapshots: true
-  });
     this.state = { currUser : null }
     this.uiConfig = {
       callbacks : {
@@ -32,7 +26,6 @@ class App extends Component {
 
   componentDidMount() {
     firebase.auth().onAuthStateChanged(user => {
-      console.log('User status', user);
       this.setState({currUser : user});
     });
   }
