@@ -8,6 +8,10 @@ class Product extends Component {
     constructor(props) {
         super(props);
         this.state = {
+          name : this.props.product.name,
+          brand : this.props.product.brand,
+          rating : this.props.product.rating,
+          type : this.props.product.type,
           imageUrl : this.props.product.imageUrl
         }
      }
@@ -29,12 +33,12 @@ class Product extends Component {
       return (
         <div>
         <Card style={{ width: '15rem' }}>
-        <Card.Header>{this.props.product.name}</Card.Header>
+        <Card.Header>{this.state.name}</Card.Header>
           <Card.Img variant="top" src={this.state.imageUrl} />
           <Card.Body>
-            <Card.Title>{this.props.product.brand}</Card.Title>
-            <Card.Subtitle className="mb-2 text-muted">{this.props.product.type}</Card.Subtitle>
-            <Card.Text>  {this.props.product.rating}</Card.Text>
+            <Card.Title>{this.state.brand}</Card.Title>
+            <Card.Subtitle className="mb-2 text-muted">{this.state.type}</Card.Subtitle>
+            <Card.Text>  {this.state.rating}</Card.Text>
           </Card.Body>
         </Card>
       </div>
