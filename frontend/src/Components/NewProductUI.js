@@ -12,8 +12,8 @@ class NewProductUI extends Component {
       var file = document.getElementById('image').files[0];
       var imageRef = this.props.storageRef.child(this.props.email + '/' + productId);
       imageRef.put(file).then( snapshot => {
-          console.log('image uploaded');
-          this.updatedLastAdded(productId);
+          console.log(snapshot);
+          //this.updatedLastAdded(productId);
           this.props.finished();
       });
     }
@@ -35,6 +35,7 @@ class NewProductUI extends Component {
             rating : document.getElementById('rating').value,
             type : document.getElementById('type').value
         }).then( doc  => {
+            console.log(doc);
             this.uploadImage(doc.id);
         })
         .catch( error => { 

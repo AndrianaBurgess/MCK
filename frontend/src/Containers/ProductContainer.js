@@ -32,116 +32,13 @@ class ProductContainer extends React.Component {
 
         this.lastAddedRef = this.firestore.collection(USERS_COLLECTION)
         .doc(this.email).collection(META).doc(LAST_ADDED);
+
      }
 
-     createLastAdded = () => {
-      this.lastAddedRef.set({
-        productId : 'none'
-      })
-      .then( () => {
-        console.log('last added created!');
-      }).catch(error => {
-        console.log(error);
-      });
-     }
-
-     checkIfLastAddedExist = (callback) => {
-       this.lastAddedRef.get()
-       .then(doc => {
-         if (!doc.exists){
-           this.createLastAdded();
-         }
-         else{
-           console.log('last added already created');
-         }
-       })
-       .catch(error => {
-         console.log(error);
-       });
-     }
-
-     listenForNewProducts = () => {
-       this.lastAddedRef.onSnapshot(doc => {
-         var lastAdded = doc.data();
-         console.log(lastAdded);
-         if (lastAdded.productId === 'none'){
-           return;
-         }
-         this.productsRef.doc(lastAdded.productId).get().then(doc => {
-          if (doc.exists) {
-            var product = doc.data();
-            this.renderNewProduct(product);
-          } else {
-              console.log("No such document!");
-            }
-        }).catch(function(error) {
-            console.log("Error getting document:", error);
-        });
-       });
-     }
-
-     renderNewProduct = (product) => {
-       var updated = Array.from(this.state.products);
-       updated.push(product);
-       this.setState({
-         products : updated
-       })
-     }
-
-
-    /***
-     * Retreives all the products added by the 
-     * current user and stores them in an array.
-     */
-    componentDidMount() {
-      fb.test();
-      this.checkIfLastAddedExist(this.createLastAdded);
-      this.loadProducts();
-      this.listenForNewProducts();
-    }
-
-    loadProducts = () => {
-      this.productsRef.get().then(snapshot => {
-
-        var productList = []
-
-        snapshot.forEach(doc => {
- 
-          var product = doc.data();
-          product.id = doc.id;
-          this.setProductImage(product);
-          productList.push(product);
-        });
-
-        this.setState({
-          products : productList
-        });
-
-      })
-      .catch(err => {
-        console.log('Error getting documents', err);
-      });
-     }
-
-     /**
-     * Retreives image url from firebase 
-     * storage and sets the products imageUrl
-     * field to it.
-     */
-    setProductImage = (product) => {
-      var storageRef = this.storage.ref();
-      var imagePath = this.email + '/' + product.id;
-      var imageRef = storageRef.child(imagePath);
-      imageRef.getDownloadURL().then(url => {
-        product.imageUrl = url;
-        console.log(product.imageUrl);
-      }).catch(function(error) {
-        console.log(error);
-      });
-    }
     
     renderProducts = () => {
       if (this.productsNotLoaded()){
+        fb.getAllProducts(this.email, this.setProducts);
         return this.renderLoadAnimation();
       }
       return this.userHasNoProducts() ?
@@ -149,22 +46,31 @@ class ProductContainer extends React.Component {
       this.getProductListUi();
     }
 
+    setProducts = productList => {
+      this.setState({
+        products : productList
+      });
+    }
+
+
      /**
      * Returns html displaying a list 
      * of products and thier information
      */
     getProductListUi = () => {
+      console.log('PRODUCTS',this.state.products);
       return (
       <div>
       <button onClick= { (e) => this.setIsAdding(e) }> Add Product </button>
       <ul> 
       {
         this.state.products.map(product => {
+        
           return (
-          <li>
+          <li key={product.id}>
             <Product product={product} key={product.id} /> 
             <button>Modify</button>
-            <button onClick={(e) => this.removeProduct(e, product.id)}>Delete</button>
+            <button onClick={(e) => this.removeProduct(e, this.email, product.id) }>Delete</button>
           </li>
            ); 
           })
@@ -174,6 +80,18 @@ class ProductContainer extends React.Component {
       );
     }
 
+    removeProduct(e, email, id){
+      e.preventDefault();
+      fb.removeProduct(email, id);
+      var updated = this.state.products;
+      updated = updated.filter(product => {
+        return product.id !== id;
+      });
+      this.setState({
+        products : updated
+      });
+    }
+
     setIsAdding = (e) => {
       e.preventDefault();
       this.setState({
@@ -181,9 +99,10 @@ class ProductContainer extends React.Component {
       });
     }
 
-    setNotAdding = () => {
+    setNotAdding = (product) => {
       this.setState({
-        isAddingProduct : false
+        isAddingProduct : false,
+        products : null
       });
     }
 
@@ -246,32 +165,6 @@ class ProductContainer extends React.Component {
         lastAddedRef={this.lastAddedRef}/>
       </div>
       );
-    }
-
-   
-
-    modifyProduct = (product) => {
-      this.productsRef.update(product).then( () => {
-
-      })
-      .catch( error => {console.log(error); } );
-    }
-
-    removeProduct = (e, productId) => {
-      e.preventDefault();
-
-      this.productsRef.doc(productId).delete()
-      .then( () => {
-        console.log("Document successfully deleted!");
-        var updatedArray = Array.from(this.state.products);
-        updatedArray = updatedArray.filter(product => product.id !== productId)
-        this.setState({products: updatedArray});
-
-      }).catch(function(error) {
-
-        console.error("Error removing document: ", error);
-
-      });
     }
 
 
