@@ -9,7 +9,39 @@ class NewProductUI extends Component {
         this.firestore = firebase.firestore();
     }
 
+    uploadImage = (productId) => {
+      var file = document.getElementById('image').files[0];
+      var imageRef = this.props.storageRef.child(this.props.email + '/' + productId);
+      imageRef.put(file).then( snapshot => {
+          console.log('image uploaded');
+          this.updatedLastAdded(productId);
+          this.props.finished();
+      });
+    }
 
+    updatedLastAdded = (id) => {
+        this.props.lastAddedRef.update({
+            productId : id
+        })
+        .then( () => {
+            console.log('updated last added');
+        })
+    }
+
+    addProduct = (e) => {
+        e.preventDefault();
+        this.props.productsRef.add({
+            name : document.getElementById('name').value,
+            brand : document.getElementById('brand').value,
+            rating : document.getElementById('rating').value,
+            type : document.getElementById('type').value
+        }).then( doc  => {
+            this.uploadImage(doc.id);
+        })
+        .catch( error => { 
+            console.log(error);
+         });
+    }
 
     render() {
         return (
@@ -24,7 +56,7 @@ class NewProductUI extends Component {
                     <option value="shampoo">Shampoo</option>
                 </select> <br/>
                 <input type="file" name="fileToUpload" id="image"/> <br/>
-                <button onClick=""> Save </button>
+                <button onClick={ (e) => this.addProduct(e) }> Save </button>
             </form>
         );
       }

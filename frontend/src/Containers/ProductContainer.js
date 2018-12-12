@@ -5,6 +5,8 @@ import firebase from 'firebase';
 import FadeLoader from 'react-spinners/FadeLoader';
 const USERS_COLLECTION = 'users';
 const PRODUCTS_COLLECTION = 'products';
+const LAST_ADDED = 'lastAdded'
+const META = 'meta';
 
 
 class ProductContainer extends React.Component {
@@ -20,20 +22,67 @@ class ProductContainer extends React.Component {
         
         this.firestore = firebase.firestore();
         this.storage = firebase.storage();
-        this.usersRef = this.firestore.collection(USERS_COLLECTION);
-        this.userEmail = this.props.currUser.email;
+
+        this.productsRef = this.firestore.collection(USERS_COLLECTION)
+        .doc(this.props.currUser.email).collection(PRODUCTS_COLLECTION);
+
+        this.lastAddedRef = this.firestore.collection(USERS_COLLECTION)
+        .doc(this.props.currUser.email).collection(META).doc(LAST_ADDED);
      }
 
-    /***
-     * Retreives all the products added by the 
-     * current user and stores them in an array.
-     */
-    componentDidMount() {
-      
-      var productsRef = this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION);
+     createLastAdded = () => {
+      this.lastAddedRef.set({
+        productId : 'none'
+      })
+      .then( () => {
 
-      productsRef.get().then(snapshot => {
+      }).catch(error => {
+
+      });
+     }
+
+     checkIfLastAddedExist = (callback) => {
+       this.lastAddedRef.get()
+       .then(doc => {
+         if (!doc.exists){
+           this.createLastAdded();
+         }
+       })
+       .catch(error => {
+         console.log(error);
+       });
+     }
+
+     listenForNewProducts = () => {
+       this.lastAddedRef.onSnapshot(doc => {
+         var lastAdded = doc.data();
+         console.log(lastAdded);
+         if (lastAdded.productId == 'none'){
+           return;
+         }
+         this.productsRef.doc(lastAdded.productId).get().then(doc => {
+          if (doc.exists) {
+            var product = doc.data();
+            this.renderNewProduct(product);
+          } else {
+              console.log("No such document!");
+            }
+        }).catch(function(error) {
+            console.log("Error getting document:", error);
+        });
+       });
+     }
+
+     renderNewProduct = (product) => {
+       var updated = Array.from(this.state.products);
+       updated.push(product);
+       this.setState({
+         products : updated
+       })
+     }
+
+     loadProducts = () => {
+      this.productsRef.get().then(snapshot => {
 
         var productList = []
 
@@ -41,7 +90,6 @@ class ProductContainer extends React.Component {
           console.log(doc);
           var product = doc.data();
           product.id = doc.id;
-         // this.setProductImageSrc(product);
           productList.push(product);
         });
 
@@ -54,6 +102,15 @@ class ProductContainer extends React.Component {
       .catch(err => {
         console.log('Error getting documents', err);
       });
+     }
+    /***
+     * Retreives all the products added by the 
+     * current user and stores them in an array.
+     */
+    componentDidMount() {
+      this.checkIfLastAddedExist(this.createLastAdded);
+      this.loadProducts();
+      this.listenForNewProducts();
     }
 
     /**
@@ -62,6 +119,7 @@ class ProductContainer extends React.Component {
      * field to it.
      */
     setProductImageSrc = (product) => {
+      
       var imagePath = product.imagePath;
       var storageRef = this.storage.ref();
       var imageRef = storageRef.child(imagePath);
@@ -72,24 +130,7 @@ class ProductContainer extends React.Component {
       });
     }
 
-    removeProduct = (e, productId) => {
-      console.log(productId);
-      e.preventDefault();
-
-      this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION).doc(productId).delete().then( () => {
-
-        console.log("Document successfully deleted!");
-        var updatedArray = Array.from(this.state.products);
-        updatedArray = updatedArray.filter(product => product.id !== productId)
-        this.setState({products: updatedArray});
-
-      }).catch(function(error) {
-
-        console.error("Error removing document: ", error);
-
-      });
-    }
+  
 
     renderProducts = () => {
       if (this.productsNotLoaded()){
@@ -129,6 +170,12 @@ class ProductContainer extends React.Component {
       e.preventDefault();
       this.setState({
         isAddingProduct : true
+      });
+    }
+
+    setNotAdding = () => {
+      this.setState({
+        isAddingProduct : false
       });
     }
 
@@ -175,37 +222,57 @@ class ProductContainer extends React.Component {
       return this.state.products === null;
     }
 
+    renderModifyProducts = () => {
+
+    }
+
+
     renderAddProduct = () => {
       console.log("heeeeey");
       return (
         
       <div>
-        <NewProductUI/>
-        
+        <NewProductUI email={this.props.currUser.email}
+        storageRef={this.storage.ref()}
+        productsRef={this.productsRef}
+        finished={this.setNotAdding} 
+        lastAddedRef={this.lastAddedRef}/>
       </div>
       );
     }
 
-    addProduct(product) {
-      this.usersRef.doc(this.userEmail)
-      .collection(PRODUCTS_COLLECTION).add(product)
-      .then( () => {
-        this.setState({ isAddingProduct : false });
+   
+
+    modifyProduct = (product) => {
+      this.productsRef.update(product).then( () => {
+
       })
-      .catch( error => {
-        console.log(error);
+      .catch( error => {console.log(error); } );
+    }
+
+    removeProduct = (e, productId) => {
+      console.log(productId);
+      e.preventDefault();
+
+      this.productsRef.doc(productId).delete()
+      .then( () => {
+        console.log("Document successfully deleted!");
+        var updatedArray = Array.from(this.state.products);
+        updatedArray = updatedArray.filter(product => product.id !== productId)
+        this.setState({products: updatedArray});
+
+      }).catch(function(error) {
+
+        console.error("Error removing document: ", error);
+
       });
     }
 
-    renderModifyProducts = () => {
-
-    }
 
     render() { 
-      console.log(this.state.isAddingProduct);
-      
+
       if (this.state.isAddingProduct){
-        console.log("wth sis");
+      
         return this.renderAddProduct();
       }
 
