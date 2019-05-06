@@ -6,9 +6,7 @@ import Form from 'react-bootstrap/lib/Form';
 
 class NewProductUI extends Component {
 
-
-
-    add = (e) => {
+    add = e => {
         e.preventDefault();
         var product = {
             name : document.getElementById('name').value,
@@ -19,6 +17,11 @@ class NewProductUI extends Component {
         var file = document.getElementById('image').files[0];
         var email = this.props.email;
         fb.addProduct(email, product, file).then(this.props.finish);
+    }
+
+    cancel = e => {
+        e.preventDefault();
+        this.props.finish();
     }
 
     render() {
@@ -68,10 +71,10 @@ class NewProductUI extends Component {
                 
                 <Form.Row>
                 <ButtonToolBar>
-                    <Button variant="danger" >
+                    <Button variant="danger" id="cancel-button" onClick={ e => this.cancel(e)}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={ (e) => this.add(e) }>
+                    <Button variant="primary" onClick={ e => this.add(e) }>
                         Save
                     </Button>
                     </ButtonToolBar>

@@ -5,6 +5,8 @@ import * as fb from '../firebasefunctions';
 import FadeLoader from 'react-spinners/FadeLoader';
 import Button from 'react-bootstrap/lib/Button';
 import CardGroup from 'react-bootstrap/lib/CardGroup';
+import CardDeck from 'react-bootstrap/lib/CardDeck';
+
 
 
 
@@ -84,19 +86,19 @@ class ProductContainer extends React.Component {
       return (
       <div>
       <Button onClick= { (e) => this.setIsAdding(e) }> Add Product </Button>
-       <CardGroup>
+       <div class="row justify-content-center">
       {
         this.state.products.map(product => {
           return (
-          <li key={product.id}>
+          <div key={product.id}>
             <Product product={product} email={this.email} /> 
             <button>Modify</button>
             <button onClick={(e) => this.removeProduct(e, this.email, product.id) }>Delete</button>
-          </li>
+          </div>
            ); 
           })
       }
-      </CardGroup>
+      </div>
       </div>
       );
     }
@@ -130,6 +132,7 @@ class ProductContainer extends React.Component {
     }
 
     doneAdding = () => {
+      console.log("done adding");
       this.setState({
         products : null,
         isAddingProduct: false

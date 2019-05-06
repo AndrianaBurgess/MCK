@@ -17,6 +17,7 @@ class Product extends Component {
      }
 
      setProductImage = url => {
+       console.log("setting",url);
       this.setState({
         imageUrl : url
       });

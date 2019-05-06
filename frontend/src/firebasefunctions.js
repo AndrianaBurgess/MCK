@@ -14,23 +14,44 @@ const PRODUCTS_COLLECTION = 'products';
 
 async function removeProductImage(email, productId) {
     var imagePath = email + '/' + productId;
-    var imageRef = storage.ref().child(imagePath);
-    await imageRef.delete();
+    try {
+        var imageRef = storage.ref().child(imagePath);
+        await imageRef.delete();
+    } catch (error) {
+        
+    }
+    
 }
 
 
 export async function removeProduct(email, productId){
-    await firestore.collection(USERS_COLLECTION)
-    .doc(email).collection(PRODUCTS_COLLECTION)
-    .doc(productId).delete();
-    removeProductImage(email, productId);
+    try {
+        await firestore.collection(USERS_COLLECTION)
+        .doc(email).collection(PRODUCTS_COLLECTION)
+        .doc(productId).delete();
+
+        removeProductImage(email, productId);
+    } catch (error) {
+        
+    }
+    
+    
 }
 
 export async function getProductImageUrl(id, email){
-    var storageRef = storage.ref();
-    var imagePath = email + '/' + id;
-    var imageRef = storageRef.child(imagePath);
-    const url = await imageRef.getDownloadURL();
+    let storageRef = storage.ref();
+    let imagePath = email + '/' + id;
+    const imageRef = storageRef.child(imagePath);
+    let url;
+    try {
+        console.log("woah");
+        url = await imageRef.getDownloadURL();
+        console.log("bitches");
+    } catch (error) {
+        console.log(error);
+        url = "";
+    }
+    console.log(url);
     return url;
 }
 
@@ -49,7 +70,9 @@ export async function getAllProducts(email){
 export async function addProduct(email, product, file){
     const productDoc = await firestore.collection(USERS_COLLECTION)
     .doc(email).collection(PRODUCTS_COLLECTION).add(product);
-    await uploadImage(email, productDoc.id, file);
+    if(file != null){
+        await uploadImage(email, productDoc.id, file);
+    }
 }
 
 async function uploadImage(email, productId, file) {
